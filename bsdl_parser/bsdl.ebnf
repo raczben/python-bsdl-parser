@@ -118,7 +118,8 @@ use_statement = "use" @:user_package_name period "all" semicolon ;
 user_package_name = vhdl_identifier ;
 
 general_entity_attribute = "attribute" vhdl_identifier "of"
-    component_name colon "entity" "is" general_attribute_value semicolon ;
+    component_name colon entity_or_packet "is" general_attribute_value semicolon ;
+entity_or_packet = "entity" | "package" ;
 
 general_attribute_value = integer | vhdl_identifier | string ;
 
@@ -186,8 +187,7 @@ disable_result = "WEAK0" | "WEAK1" | "PULL0" | "PULL1" | "OPEN0" | "OPEN1" |
     "KEEPER" | "Z" ;
 
 (* B.8.17 *)
-system_clock_description = "attribute" "SYSCLOCK_REQUIREMENTS"
-    "of" entity_target "is" system_clock_description_string semicolon ;
+system_clock_description = general_entity_attribute ;
 system_clock_description_string = "&".{quote (comma).{[system_clock_requirement]} quote} ;
 system_clock_requirement = left_paren port_id comma min_freq comma max_freq
     comma clocked_instructions right_paren ;
@@ -198,22 +198,14 @@ clocked_instruction = "RUNBIST" | "INTEST" | "INIT_SETUP" |
     "INIT_SETUP_CLAMP" | "INIT_RUN" | "ECIDCODE" | "IC_RESET" | vhdl_identifier ;
 
 (* B.8.18 *)
-register_mnemonics_description = "attribute" "REGISTER_MNEMONICS" "of"
-    target "is" register_mnemonics_string semicolon ;
+register_mnemonics_description = general_entity_attribute ;
 target = entity_target | package_target ;
 entity_target = component_name colon "entity" ;
 package_target = user_package_name colon "package" ;
-register_mnemonics_string = "&".{quote (comma).{[mnemonic_definition]} quote} ;
-mnemonic_definition = mnemonic_group_name left_paren mnemonic_list right_paren ;
 mnemonic_group_name = vhdl_identifier ;
-mnemonic_list = (comma).{[mnemonic_assignment]} ;
-mnemonic_assignment = mnemonic_identifier
-    left_paren pattern_specification right_paren [ information_tag ] ;
-pattern_specification = binary_pattern | hex_pattern | decimal_pattern | "others" ;
 
 (* B.8.19 *)
-register_fields_description = "attribute" "REGISTER_FIELDS" "of" target "is"
-    register_fields_string semicolon ;
+register_fields_description = general_entity_attribute ;
 register_fields_string = "&".{quote (comma).{[register_field_list]} quote} ;
 register_field_list = reg_or_seg_name left_bracket reg_or_seg_length right_bracket
     left_paren register_fields right_paren ;
@@ -260,8 +252,7 @@ association_type = "DOMAIN" | "DOMAIN_EXTERNAL" | "SEGMENT" ;
 association_name = vhdl_identifier ;
 
 (* B.8.21 *)
-register_assembly_description = "attribute" "REGISTER_ASSEMBLY" "of" target "is"
-    register_assembly_string semicolon ;
+register_assembly_description = general_entity_attribute ;
 register_assembly_string = "&".{quote (comma).{[register_assembly_list]} quote} ;
 register_assembly_list = reg_or_seg_name left_paren register_assembly_elements right_paren ;
 register_assembly_elements = (comma).{[left_paren register_element right_paren]} ;
@@ -310,8 +301,7 @@ package_prefix = package_hierarchy | minus_sign ;
 package_hierarchy = user_package_name { period user_package_name } ;
 
 (* B.8.22 *)
-register_constraints_description = "attribute" "REGISTER_CONSTRAINTS" "of" target "is"
-    constraints_string semicolon ;
+register_constraints_description = general_entity_attribute ;
 constraints_string = "&".{quote (comma).{[constraints_list]} quote} ;
 constraints_list = constraint_domain left_paren constraint_checks right_paren ;
 constraint_domain = reg_or_seg_name | "entity" | "package" ;
@@ -357,8 +347,7 @@ logical_and = "&&";
 logical_or = "||";
 
 (* B.8.23 *)
-register_association_description = "attribute" "REGISTER_ASSOCIATION"
-    "of" target "is" register_association_string semicolon ;
+register_association_description = general_entity_attribute ;
 register_association_string = "&".{quote (comma).{[register_association_list]} quote} ;
 register_association_list = reg_field_or_instance colon { association_list }+ ;
 reg_field_or_instance = field_or_instance_name [ left_paren index right_paren ] ;
@@ -379,8 +368,7 @@ unit_name = vhdl_identifier ;
 unit_value = hex_pattern ;
 unit_scale = real ;
 unit_link = information_tag ;
-power_port_association_description = "attribute" "POWER_PORT_ASSOCIATION"
-    "of" entity_target "is" power_port_association_string semicolon ;
+power_port_association_description = general_entity_attribute ;
 power_port_association_string = "&".{quote (comma).{[power_port_association_list]} quote} ;
 power_port_association_list = power_port_id colon port_association_list ;
 power_port_id = port_id ;
@@ -396,7 +384,7 @@ bsdl_package_defined_name = vhdl_identifier ;
 extension_parameter_string = string ;
 
 (* B.8.25 *)
-design_warning = "attribute" "DESIGN_WARNING" "of" target "is" @:string semicolon ;
+design_warning = general_entity_attribute ;
 
 (* B.10 *)
 user_package = user_package_stmt user_package_body ;
