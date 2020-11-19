@@ -1,0 +1,58 @@
+CHANGES
+=======
+
+* add multi-file processing feature
+* Update Readme to reflect Grako version requirement
+* Fix #2
+* Makefile: name the parser
+* Added Readme
+* Added Makefile
+* Automatically handle string concatenation
+* Fixed parsing of BSDL extensions
+* Made vhdl\_identifier the first pattern to try when parsing instruction\_name
+* Fixed grouped\_port\_identification by parsing the string separately
+* Added .gitignore
+* Renamed grammar file
+* Save space by not pretty-printing
+* Added "linkage" for backwards-compatability
+* Named items to be added to the AST
+* Fix strings again
+* Fixed string concatenation and parsing issues
+* Converted integer, real, string and information tag lexers to regexes
+* Added initial lexers
+* Made scan\_port\_stmt definitions lowercase
+* Changed order to avoid parser issues
+* s/pin\_ID/pin\_id/g
+* Added character definitions
+* s/not\_equal/not\_equals/
+* s/nested\_expression/nested\_expr/g
+* Added constraint expression operators
+* Added missing quotes
+* Added B.6.2
+* Added B.10
+* s/TDR/tdr/g
+* s/port\_ID/port\_id/g
+* Added B.8.25
+* Added B.8.24
+* Added B.8.23
+* Added B.8.22
+* Added B.8.21
+* Added B.8.20
+* Added B.8.19
+* Added B.8.18
+* Added B.8.17
+* Added B.8.16
+* Added B.8.15
+* Added B.8.14
+* Fixed case on vhdl\_identifier
+* Added B.8.13
+* Added B.8.12
+* Added B.8.11
+* Added B.8.10
+* Added B.8.9
+* Added B.8.8
+* Added B.8.7
+* Added initial EBNF file for the 2013 standard
+* Added attribute parsers
+* Robustness improvements
+* First commit
