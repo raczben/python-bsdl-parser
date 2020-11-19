@@ -60,17 +60,17 @@ bsdl_description = "entity" component_name:component_name "is"
     logical_port_description:logical_port_description
     standard_use_statement:standard_use_statement
     {use_statement:use_statement}
-    component_conformance_statement:component_conformance_statement
+    component_conformance_statement:general_entity_attribute
     device_package_pin_mappings:device_package_pin_mappings
-    [grouped_port_identification:grouped_port_identification]
+    [grouped_port_identification:general_entity_attribute]
     scan_port_identification:scan_port_identification
-    [compliance_enable_description:compliance_enable_description]
+    [compliance_enable_description:general_entity_attribute]
     instruction_register_description:instruction_register_description
     [optional_register_description:optional_register_description]
-    [register_access_description:register_access_description]
+    [register_access_description:general_entity_attribute]
     boundary_scan_register_description:boundary_scan_register_description
-    [runbist_description:runbist_description]
-    [intest_description:intest_description]
+    [runbist_description:general_entity_attribute]
+    [intest_description:general_entity_attribute]
     [system_clock_description:system_clock_description]
     {register_mnemonics_description:register_mnemonics_description}
     {register_fields_description:register_fields_description}
@@ -117,17 +117,13 @@ standard_package_name = "STD_1149_1_1990" | "STD_1149_1_1994" |
 use_statement = "use" @:user_package_name period "all" semicolon ;
 user_package_name = vhdl_identifier ;
 
-(* B.8.6 *)
-component_conformance_statement = "attribute" "COMPONENT_CONFORMANCE" "of"
-    component_name colon "entity" "is" @:conformance_string semicolon ;
-conformance_string = quote @:conformance_identification quote ;
-conformance_identification = "STD_1149_1_1990" | "STD_1149_1_1993" |
-    "STD_1149_1_2001" | "STD_1149_1_2013" ;
+general_entity_attribute = "attribute" vhdl_identifier "of"
+    component_name colon "entity" "is" general_attribute_value semicolon ;
+
+general_attribute_value = integer | vhdl_identifier | string ;
 
 (* B.8.7 *)
-device_package_pin_mappings = pin_map_statement @:pin_mappings ;
-pin_map_statement = "attribute" "PIN_MAP" "of" component_name colon "entity" "is"
-    "PHYSICAL_PIN_MAP" semicolon ;
+device_package_pin_mappings = general_entity_attribute @:pin_mappings ;
 pin_mappings = { pin_mapping }+ ;
 pin_mapping = "constant" pin_mapping_name:pin_mapping_name colon "PIN_MAP_STRING" ":="
     pin_map:map_string semicolon ;
@@ -139,18 +135,6 @@ pin_or_list = @+:pin_desc | @:pin_list ;
 pin_list = left_paren (comma).{[@:pin_desc]} right_paren ;
 pin_desc = "OPEN" | "TIE0" | "TIE1" | pin_id ;
 pin_id = integer | vhdl_identifier ;
-
-(* B.8.8 *)
-grouped_port_identification = "attribute" "PORT_GROUPING" "of"
-    component_name colon "entity" "is" @:group_table_string semicolon ;
-group_table_string = string ;
-group_table = (comma).{[twin_group_entry]} ;
-twin_group_entry = twin_group_type:twin_group_type left_paren twin_group_list:twin_group_list right_paren ;
-twin_group_type = "DIFFERENTIAL_VOLTAGE" | "DIFFERENTIAL_CURRENT" ;
-twin_group_list = (comma).{[twin_group]} ;
-twin_group = left_paren representative_port:representative_port comma associated_port:associated_port right_paren ;
-representative_port = port_id ;
-associated_port = port_id ;
 
 (* B.8.9 *)
 scan_port_identification = { scan_port_stmt }+ ;
@@ -164,80 +148,22 @@ trst_stmt = "attribute" "TAP_SCAN_RESET" "of" port_id colon "signal" "is" tap_sc
 clock_record = frequency:real comma halt_value:halt_state_value ;
 halt_state_value = "LOW" | "BOTH" ;
 
-(* B.8.10 *)
-compliance_enable_description = "attribute" "COMPLIANCE_PATTERNS" "of"
-    component_name colon "entity" "is" compliance_patterns:compliance_pattern_string semicolon ;
-compliance_pattern_string = "&".{quote left_paren compliance_port_list:compliance_port_list right_paren
-    left_paren pattern_list:pattern_list right_paren quote} ;
-compliance_port_list = (comma).{[port_id]} ;
-pattern_list = (comma).{[pattern]} ;
-
 (* B.8.11 *)
 instruction_register_description =
-    instruction_length:instruction_length_stmt
-    instruction_opcodes:instruction_opcode_stmt
-    instruction_capture:instruction_capture_stmt
-    [instruction_private:instruction_private_stmt] ;
-instruction_length_stmt = "attribute" "INSTRUCTION_LENGTH" "of" component_name
-    colon "entity" "is" @:integer semicolon ;
-instruction_opcode_stmt = "attribute" "INSTRUCTION_OPCODE" "of" component_name
-    colon "entity" "is" @:opcode_table_string semicolon ;
-instruction_capture_stmt = "attribute" "INSTRUCTION_CAPTURE" "of" component_name
-    colon "entity" "is" @:pattern_list_string semicolon ;
-instruction_private_stmt = "attribute" "INSTRUCTION_PRIVATE" "of" component_name
-    colon "entity" "is" @:instruction_list_string semicolon ;
-opcode_table_string = "&".{quote (comma).{[@+:opcode_description]} quote} ;
-opcode_description = instruction_name:instruction_name left_paren opcode_list:opcode_list right_paren ;
-opcode_list = (comma).{[@+:opcode]} ;
-opcode = pattern ;
-pattern_list_string = "&".{quote @:opcode_list quote} ;
-instruction_list_string = "&".{quote @:instruction_list quote} ;
-instruction_list = (comma).{[@:instruction_name]} ;
+    instruction_length:general_entity_attribute
+    instruction_opcodes:general_entity_attribute
+    instruction_capture:general_entity_attribute
+    [instruction_private:general_entity_attribute] ;
 
 (* B.8.12 *)
 optional_register_description = optional_register_stmt [ optional_register_stmt ] ;
-optional_register_stmt = idcode_statement | usercode_statement ;
-idcode_statement = "attribute" "IDCODE_REGISTER" "of" component_name
-    colon "entity" "is" "&".{quote idcode_register:thirty_two_bit_pattern_list quote} semicolon ;
-usercode_statement = "attribute" "USERCODE_REGISTER" "of" component_name
-    colon "entity" "is" "&".{quote usercode_register:thirty_two_bit_pattern_list quote} semicolon ;
-thirty_two_bit_pattern_list = (comma).{[@:thirty_two_bit_pattern]} ;
-
-(* B.8.13 *)
-register_access_description = "attribute" "REGISTER_ACCESS" "of"
-    component_name colon "entity" "is" @:register_access_string semicolon ;
-register_access_string = "&".{quote (comma).{[@+:register_association]} quote} ;
-register_association = register:register left_paren instruction_capture_list:instruction_capture_list right_paren ;
-instruction_capture_list = (comma).{[instruction_capture]} ;
-instruction_capture = instruction_name:instruction_name [ "CAPTURES" pattern:pattern ] ;
-register = reg_name:std_fixed_register | @:std_var_register | @:design_specific_register ;
-std_fixed_register = "BOUNDARY" | "BYPASS" | "DEVICE_ID" | "TMP_STATUS" ;
-std_var_register = reg_name:std_var_reg_name [ left_bracket reg_length:reg_length right_bracket ] ;
-std_var_reg_name = "ECID" | "INIT_DATA" | "INIT_STATUS" | "RESET_SELECT" ;
-design_specific_register = reg_name:vhdl_identifier [ left_bracket reg_length:reg_length right_bracket ] ;
-reg_length = integer | asterisk ;
+optional_register_stmt = general_entity_attribute | general_entity_attribute ;
 
 (* B.8.14 *)
 boundary_scan_register_description = fixed_boundary_stmts:fixed_boundary_stmts | segment_boundary_stmts:segment_boundary_stmts ;
-fixed_boundary_stmts = boundary_length:boundary_length_stmt boundary_register:boundary_register_stmt ;
-segment_boundary_stmts = assembled_boundary_length:assembled_boundary_length_stmt boundary_register_segments:boundary_register_segments ;
-boundary_length_stmt = "attribute" "BOUNDARY_LENGTH" "of"
-    component_name colon "entity" "is" @:register_length semicolon ;
-register_length = integer ;
-boundary_register_stmt = "attribute" "BOUNDARY_REGISTER" "of"
-    component_name colon "entity" "is" @:cell_table_string semicolon ;
-cell_table_string = "&".{quote @:cell_table quote} ;
-assembled_boundary_length_stmt = "attribute" "ASSEMBLED_BOUNDARY_LENGTH" "of"
-    component_name colon "entity" "is"
-    left_paren reset_length:reset_length comma boundary_length:register_length right_paren semicolon ;
-reset_length = integer ;
-boundary_register_segments = { boundary_register_segment }+ ;
-boundary_register_segment = "attribute" "BOUNDARY_SEGMENT" "of"
-    component_name colon "entity" "is" boundary_segment:boundary_segment_string semicolon ;
-boundary_segment_string = "&".{quote (comma).{[@+:boundary_segment_list]} quote} ;
-boundary_segment_list = segment_name:boundary_segment_name
-    left_bracket segment_length:boundary_segment_length right_bracket
-    left_paren cell_table:cell_table right_paren ;
+fixed_boundary_stmts = boundary_length:general_entity_attribute boundary_register:general_entity_attribute ;
+segment_boundary_stmts = assembled_boundary_length:general_entity_attribute boundary_register_segments:boundary_register_segments ;
+boundary_register_segments = { general_entity_attribute }+ ;
 boundary_segment_name = vhdl_identifier ;
 boundary_segment_length = integer ;
 cell_table = (comma).{[@:cell_entry]} ;
@@ -258,27 +184,6 @@ ccell = integer ;
 disable_value = "0" | "1" ;
 disable_result = "WEAK0" | "WEAK1" | "PULL0" | "PULL1" | "OPEN0" | "OPEN1" |
     "KEEPER" | "Z" ;
-
-(* B.8.15 *)
-runbist_description = "attribute" "RUNBIST_EXECUTION" "of" component_name
-    colon "entity" "is" "&".{quote runbist_spec quote} semicolon ;
-runbist_spec = wait_spec comma pin_state comma signature_spec ;
-wait_spec = "WAIT_DURATION" left_paren duration_spec right_paren ;
-duration_spec = clock_cycles_list | time_and_clocks ;
-time_and_clocks = time [ comma clock_cycles_list ] ;
-clock_cycles_list = (comma).{[clock_cycles]} ;
-time = real ;
-clock_cycles = port_id integer ;
-pin_state = "OBSERVING" condition "AT_PINS" ;
-condition = "HIGHZ" | "BOUNDARY" ;
-signature_spec = "EXPECT_DATA" det_pattern ;
-det_pattern = { bit }+ ;
-bit = "0" | "1" ;
-
-(* B.8.16 *)
-intest_description = "attribute" "INTEST_EXECUTION" "of" component_name
-    colon "entity" "is" "&".{quote intest_spec quote} semicolon ;
-intest_spec = wait_spec comma pin_state ;
 
 (* B.8.17 *)
 system_clock_description = "attribute" "SYSCLOCK_REQUIREMENTS"
